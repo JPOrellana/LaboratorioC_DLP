@@ -108,9 +108,24 @@ def convertir_rangos(input_text):
 
     def expandir_rango(match):
         inicio, fin = match.groups()
-        # Generar el rango expandido entre los dos caracteres sin añadir paréntesis adicionales aquí
-        rango_expandido = '|'.join(chr(c) for c in range(ord(inicio), ord(fin) + 1))
+        # Iniciar la cadena del rango expandido
+        rango_expandido = ''
+
+        # Recorrer el rango de caracteres desde el inicio hasta el fin
+        for char_code in range(ord(inicio), ord(fin) + 1):
+            char = chr(char_code)
+            if rango_expandido:  # Si ya hay caracteres en rango_expandido, añadir el separador
+                rango_expandido += '|'
+            rango_expandido += char
+
+            # Si el caracter actual es 'Z', añadir el separador antes de 'a'
+            if char == 'Z':
+                rango_expandido += '|'
+
         return rango_expandido
+
+
+
 
     def procesar_definicion(linea):
         if not linea.strip().startswith('let'):
