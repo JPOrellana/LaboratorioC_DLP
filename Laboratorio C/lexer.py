@@ -102,22 +102,65 @@ def sustituir_y_construir_rule(input_text, sustituidos):
 
 
 def convertir_rangos(input_text):
+    # Primero, eliminar comentarios
+    texto_sin_comentarios = re.sub(r'\(\*.*?\*\)', '', input_text, flags=re.DOTALL)
+
     def expandir_rango(match):
         inicio, fin = match.groups()
-        return '(' + '|'.join(chr(c) for c in range(ord(inicio), ord(fin) + 1)) + ')'
+        # Generar el rango expandido entre los dos caracteres sin añadir paréntesis adicionales aquí
+        rango_expandido = '|'.join(chr(c) for c in range(ord(inicio), ord(fin) + 1))
+        return rango_expandido
 
-    def procesar_definicion(match):
-        identificador, valores = match.groups()
-        # Convertir rangos
-        valores_convertidos = re.sub(r"'(.)'-'(.)'", expandir_rango, valores)
-        # Cambiar corchetes por paréntesis
+    def procesar_definicion(linea):
+        if not linea.strip().startswith('let'):
+            return None  # Esto omite líneas que no empiezan con 'let'
+        # Convertir rangos; esta operación no añade paréntesis adicionales por sí misma
+        valores_convertidos = re.sub(r"'(.)'-'(.)'", expandir_rango, linea)
+        # Cambiar corchetes por paréntesis solo una vez, después de expandir todos los rangos
         valores_convertidos = valores_convertidos.replace('[', '(').replace(']', ')')
-        return f"let {identificador} = {valores_convertidos}"
+        return valores_convertidos
 
-    # Buscar y procesar todas las definiciones 'let' en el texto de entrada
-    texto_procesado = re.sub(r"let\s+(\w+)\s*=\s*(\[[^\]]*\])", procesar_definicion, input_text)
+    # Aplicar transformaciones solo a las líneas 'let' y omitir sección 'rule'
+    lineas_procesadas = filter(None, (procesar_definicion(linea) for linea in texto_sin_comentarios.splitlines()))
+    texto_final = '\n'.join(lineas_procesadas)
 
-    return texto_procesado
+    # Omitir cualquier línea que empiece con 'rule' en el resultado final
+    texto_final_sin_rule = '\n'.join(linea for linea in texto_final.splitlines() if not linea.startswith('rule'))
+
+    return texto_final_sin_rule
+
+
+
+def aplicar_sustituciones_con_rangos_expandidos(input_text):
+    # Primero, eliminamos los comentarios y la sección 'rule'
+    texto_sin_comentarios_ni_rule = re.sub(r'\(\*.*?\*\)', '', input_text, flags=re.DOTALL)
+    texto_sin_comentarios_ni_rule = re.sub(r'rule\s+tokens\s*=.*', '', texto_sin_comentarios_ni_rule, flags=re.DOTALL)
+
+    # Luego, aplicamos la expansión de rangos
+    texto_con_rangos_expandidos = convertir_rangos(texto_sin_comentarios_ni_rule)
+
+    # Ahora, extraemos solo las definiciones 'let'
+    definiciones_let = re.findall(r"let\s+(\w+)\s*=\s*(.*)", texto_con_rangos_expandidos)
+
+    # Convertimos las definiciones en un diccionario para facilitar la sustitución
+    sustituciones = {nombre: valor for nombre, valor in definiciones_let}
+
+    # Función para sustituir los identificadores por sus valores en el texto
+    def sustituir_identificador_por_valor(match):
+        identificador = match.group(1)  # Capturamos el nombre del identificador
+        return sustituciones.get(identificador, identificador)  # Sustituimos por su valor, si existe
+
+    # Finalmente, aplicamos las sustituciones a cada definición 'let'
+    resultado = '\n'.join([
+        f"let {nombre} = {re.sub(r'\b(\w+)\b', sustituir_identificador_por_valor, valor)}"
+        for nombre, valor in definiciones_let
+    ])
+
+    return resultado
+
+
+
+
 
 
 

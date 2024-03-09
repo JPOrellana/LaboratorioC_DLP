@@ -1,4 +1,4 @@
-from lexer import Lexer, realizar_sustituciones, sustituir_y_construir_rule, convertir_rangos
+from lexer import Lexer, realizar_sustituciones, sustituir_y_construir_rule, convertir_rangos, aplicar_sustituciones_con_rangos_expandidos
 import re
 import sys
 
@@ -40,18 +40,34 @@ def main():
 
 
                 # Convertir rangos en las definiciones 'let' y mostrar el resultado
+                texto_con_rangos = convertir_rangos(input_text)
                 print("\n===================================================")
-                print("|            Let con rangos             |")
+                print("|                 Let con rangos                  |")
                 print("===================================================")
-                texto_con_rangos_convertidos = convertir_rangos(input_text)
-                print(texto_con_rangos_convertidos)
+                print(texto_con_rangos)
 
+
+                texto_procesado = aplicar_sustituciones_con_rangos_expandidos(input_text)
+                print("\n===================================================")
+                print("|       Realizando sustituciones con rangos       |")
+                print("===================================================")
+                print(texto_procesado)
 
 
         except FileNotFoundError:
-            print(f"El archivo {file_path} no se encontró.")
+            print("==========================================================================")
+            print(f"               ⚠  El archivo {file_path} no se encontró ⚠               ")
+            print("==========================================================================")
     else:
-        print("Por favor, especifica el path del archivo .yal como argumento.")
+        print("==========================================================================")
+        print("|                  ⚠  No ingresó dirección del .yal ⚠                    |")
+        print("| Para ejecutar deberá ingresar la ruta del .yal de la siguiente manera: |")
+        print("|        ... Laboratorio C>python lexical_analyzer.py 'slr-1.yal'        |")
+        print("==========================================================================")
 
 if __name__ == "__main__":
     main()
+
+
+
+                
