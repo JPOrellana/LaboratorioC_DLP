@@ -13,6 +13,7 @@ class Lexer:
             "DIVIDE": re.compile(r'/'),
             "LPAREN": re.compile(r'\('),
             "RPAREN": re.compile(r'\)'),
+            "KEYWORD": re.compile(r'\b(let|return|rule)\b'), # Recognize 'let', 'return', and 'rule' as keywords
             "IDENTIFIER": re.compile(r'[a-zA-Z_]\w*'),
             "LITERAL": re.compile(r"'([^']*)'|\"([^\"]*)\""),
             "EOF": re.compile(r'<<EOF>>'),
