@@ -125,8 +125,6 @@ def convertir_rangos(input_text):
         return rango_expandido
 
 
-
-
     def procesar_definicion(linea):
         if not linea.strip().startswith('let'):
             return None  # Esto omite líneas que no empiezan con 'let'
@@ -147,6 +145,7 @@ def convertir_rangos(input_text):
 
 
 
+
 def aplicar_sustituciones_con_rangos_expandidos(input_text):
     # Primero, eliminamos los comentarios y la sección 'rule'
     texto_sin_comentarios_ni_rule = re.sub(r'\(\*.*?\*\)', '', input_text, flags=re.DOTALL)
@@ -161,10 +160,18 @@ def aplicar_sustituciones_con_rangos_expandidos(input_text):
     # Convertimos las definiciones en un diccionario para facilitar la sustitución
     sustituciones = {nombre: valor for nombre, valor in definiciones_let}
 
+    # Aseguramos que 'digits' sea sustituido correctamente
+    sustituciones_correctas = {}
+    for identificador, valor in sustituciones.items():
+        # Sustituimos dentro del valor de cada identificador antes de asignarlo al nuevo diccionario
+        valor_sustituido = re.sub(r'\b(\w+)\b', lambda match: sustituciones.get(match.group(1), match.group(1)), valor)
+        sustituciones_correctas[identificador] = valor_sustituido
+
     # Función para sustituir los identificadores por sus valores en el texto
     def sustituir_identificador_por_valor(match):
         identificador = match.group(1)  # Capturamos el nombre del identificador
-        return sustituciones.get(identificador, identificador)  # Sustituimos por su valor, si existe
+        # Utilizamos el diccionario con las sustituciones correctas
+        return sustituciones_correctas.get(identificador, identificador)
 
     # Finalmente, aplicamos las sustituciones a cada definición 'let'
     resultado = '\n'.join([
@@ -173,6 +180,10 @@ def aplicar_sustituciones_con_rangos_expandidos(input_text):
     ])
 
     return resultado
+
+# Ajustes específicos como `convertir_rangos` deben ser definidos de acuerdo a tu código existente.
+
+
 
 
 
